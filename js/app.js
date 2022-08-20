@@ -3,6 +3,12 @@ import { apiKey } from "./env.js";
 // Variables del htlm
 const resultado = document.querySelector('#resultado');
 const formulario = document.querySelector('#formulario');
+const paginacionDiv = document.querySelector('#paginacion');
+
+// Variable para el paginador
+const registrosPorPagina = 40;
+let totalPaginas;
+let iterador;
 
 window.onload = () => {
     formulario.addEventListener('submit', validarFormulario);
@@ -52,17 +58,23 @@ function buscarImagenes(termino) {
     // console.log(termino);
 
     const key = apiKey;
-    const url = `https://pixabay.com/api/?key=${key}&q=${termino}`;
+    const url = `https://pixabay.com/api/?key=${key}&q=${termino}&per_page=${registrosPorPagina}`;
 
-    console.log(url);
+    // console.log(url);
 
     fetch(url)
         .then(resultado =>{
+            
             return resultado.json();
         })
         .then(datos => {
             
+            // console.log(datos);
             // console.log(datos.hits);
+
+            totalPaginas = calcularPaginas(datos.totalHits);
+            // console.log(totalPaginas);
+
             mostrarImagenes(datos.hits);
         })
         .catch(error => {
@@ -95,6 +107,11 @@ function mostrarImagenes(imagenes) {
         `;
     });
 
+    // Limpiamos el paginador previo
+    limpiarPaginadorPrevio();
+
+    // Generamos el paginador en el Html
+    imprimirPaginador();
 
 }
 // Fin mostrar imagenes
@@ -102,5 +119,58 @@ function mostrarImagenes(imagenes) {
 function limpiarHtml() {
     while (resultado.firstChild) {
         resultado.removeChild(resultado.firstChild);
+    }
+}
+// Fin limpiarHtml
+
+// Función que me permite calcular el total de páginas a crear en el paginador
+function calcularPaginas(total) {
+    return parseInt(Math.ceil(total/registrosPorPagina));
+}
+
+/**Generador que va a registrar la cantidad de elementos deacuerdo
+ * a las páginas. Recordar que para crear un generador se pone
+ * un * antes del nombre
+ */
+function *crearPaginador(total) {
+    // console.log(total);
+    for (let i = 1; i <= total; i++) {
+        // console.log(i);
+        // Registro los valores internamente en el generador
+        yield i;
+    }
+}
+
+function imprimirPaginador() {
+    /**Llamo al generador para calcular el número de páginas */
+    iterador = crearPaginador(totalPaginas);
+    // con .next despierta el generador y se quita de suspended
+    // console.log(iterador.next().done);
+
+    while (true) {
+        // accedo a las propiedades del generador crearPaginador con
+        // el .next
+        const {value, done} = iterador.next();
+
+        // Si ya llegó al final, ya no hace nada
+        if(done) return;
+
+        /**En caso contrario genera un botón por cada elemento en el
+         * generador
+         */
+        const boton = document.createElement('a');
+        boton.href = "#";
+        boton.dataset.pagina = value;
+        boton.textContent = value;
+        boton.classList.add('siguiente', 'bg-yellow-400', 'px-4', 'py-1', 'mr-2', 'font-bold', 'mb-5', 'uppercase', 'rounded');
+
+        paginacionDiv.appendChild(boton);
+    }
+}
+// Fin imprimirPaginador
+
+function limpiarPaginadorPrevio() {
+    while (paginacionDiv.firstChild) {
+        paginacionDiv.removeChild(paginacionDiv.firstChild);
     }
 }
