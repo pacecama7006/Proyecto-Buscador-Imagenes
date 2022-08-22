@@ -55,7 +55,7 @@ function mostrarAlerta(mensaje) {
 }
 // Fin mostrar alerta
 
-function buscarImagenes() {
+async function buscarImagenes() {
     // console.log(termino);
     const termino = document.querySelector('#termino').value;
     const key = apiKey;
@@ -63,24 +63,36 @@ function buscarImagenes() {
 
     // console.log(url);
 
-    fetch(url)
-        .then(resultado =>{
+    // Así estaba antes
+    // fetch(url)
+    //     .then(resultado =>{
             
-            return resultado.json();
-        })
-        .then(datos => {
+    //         return resultado.json();
+    //     })
+    //     .then(datos => {
             
             // console.log(datos);
             // console.log(datos.hits);
 
-            totalPaginas = calcularPaginas(datos.totalHits);
+            // totalPaginas = calcularPaginas(datos.totalHits);
             // console.log(totalPaginas);
 
-            mostrarImagenes(datos.hits);
-        })
-        .catch(error => {
-            console.log(error);
-        })
+        //     mostrarImagenes(datos.hits);
+        // })
+        // .catch(error => {
+        //     console.log(error);
+        // })
+
+    // Lo manejo ahora con async-await
+    try {
+        const respuesta = await fetch(url);
+        const resultado = await respuesta.json();
+        totalPaginas = calcularPaginas(resultado.totalHits);
+        mostrarImagenes(resultado.hits);
+    } catch (error) {
+        console.log(error);
+    }
+    
 }
 // Fin buscar imagenes
 
